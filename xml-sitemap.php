@@ -74,7 +74,7 @@ function outputURLs($dir,$filetypes,$replace,$chfreq,$prio,$ignore,$replace_file
 					?>
 					<!--Start creating the output -->
 					<url> 
-						<loc>http://<?php echo $_SERVER['SERVER_NAME'].'/syscarut'.$dir.'/'.$file ?></loc> 
+						<loc>http://<?php echo $_SERVER['SERVER_NAME'].'/'.$dir.'/'.$file ?></loc> 
 						<lastmod><?php echo $mod; ?></lastmod> 
 						<changefreq><?php echo $chfreq; ?></changefreq> 
 						<priority><?php echo $prio; ?></priority> 
