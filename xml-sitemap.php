@@ -4,10 +4,11 @@
  * XML Sitemap PHP Script
  * For more info, see: http://yoast.com/xml-sitemap-php-script/
  * Copyright (C), 2011 - Joost de Valk, joost@yoast.com
+ * Modified 2012 - Biafra Ahanonu, bahanonu@gmail.com
  */
 
 // The directory to check, this script doesn't work recursively
-define( 'SITEMAP_DIR', './');
+define( 'SITEMAP_DIR', '../');
 
 // The file types, you can just add them on, so 'pdf', 'php' would work
 $filetypes 	= array( 'php', 'html', 'pdf' );
@@ -25,7 +26,7 @@ $chfreq		= 'never';
 $prio		= 1;
 
 // Ignore array, all files in this array will be: ignored!
-$ignore		= array( 'config.php' );
+$ignore		= array( 'config.php');
 
 /**
  * STOP EDITING HERE. (UNLESS YOU KNOW WHAT YOU'RE DOING)
@@ -45,39 +46,49 @@ if ( isset( $xsl ) && $xsl != '' )
 ?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><?php
 
+outputURLs('',$filetypes,$replace,$chfreq,$prio,$ignore,$replace_files);
+
+				// elseif (condition) {
+				// 	# code...
+				// }
+function outputURLs($dir,$filetypes,$replace,$chfreq,$prio,$ignore,$replace_files){
 		// Open the dir that was asked for.
-		if ( $handle = opendir( SITEMAP_DIR ) ) {
-			while ( false !== ( $file = readdir($handle) ) ) {
-				// Check if this file needs to be ignored, if so, skip it.
-				if ( in_array( $file, $ignore ) )
+		if($handle=opendir(SITEMAP_DIR.$dir)){
+			while(false!==($file=readdir($handle))){
+				if ($file=='.'||$file=='..') {
 					continue;
-					
-				// Check whether the file has on of the extensions allowed for this XML sitemap
-				$fileinfo = pathinfo( SITEMAP_DIR.$file );
-				if ( in_array( $fileinfo['extension'], $filetypes ) ) {
-
-					// Create a W3C valid date for use in the XML sitemap based on the file modification time
-					$mod = date( 'c', filemtime( SITEMAP_DIR.$file ) );
-
-					// Replace the file with it's replacement from the settings, if needed.
-					if ( in_array( $file, $replace_files ) )
-						$file = $replace[$file];
-	
-	// Start creating the output
-	?>
-
-	<url> 
-		<loc>http://<?php echo $_SERVER['SERVER_NAME'].'/'.$file ?></loc> 
-		<lastmod><?php echo $mod; ?></lastmod> 
-		<changefreq><?php echo $chfreq; ?></changefreq> 
-		<priority><?php echo $prio; ?></priority> 
-	</url><?php
 				}
-		    } // End of the while loop
-		
+				// If file or folder chose to be ignore, skip
+				if (in_array($file,$ignore)){
+					continue;
+				}
+				// Check whether the file has on of the extensions allowed for this XML sitemap
+				$fileinfo = pathinfo(SITEMAP_DIR.$dir.$file);
+				if(isset($fileinfo['extension']) && in_array($fileinfo['extension'],$filetypes)){
+					// Create a W3C valid date for use in the XML sitemap based on the file modification time
+					$mod = date('c',filemtime(SITEMAP_DIR.$dir.'/'.$file));
+					// Replace the file with it's replacement from the settings, if needed.
+					if ( in_array( $file, $replace_files ) ){
+						$file = $replace[$file];
+					}
+					?>
+					<!--Start creating the output -->
+					<url> 
+						<loc>http://<?php echo $_SERVER['SERVER_NAME'].'/'.$dir.'/'.$file ?></loc> 
+						<lastmod><?php echo $mod; ?></lastmod> 
+						<changefreq><?php echo $chfreq; ?></changefreq> 
+						<priority><?php echo $prio; ?></priority> 
+					</url><?php
+				}else{
+					// NOTE RECURSION HERE
+					// If there is no extension, implies a folder, initiate recursive call of this function
+					$folder=$file;//only for clarity
+					outputURLs($dir.'/'.$folder,$filetypes,$replace,$chfreq,$prio,$ignore,$replace_files);
+				}
+		    }
 			// Close the dir
 			closedir($handle);
 		}
-		
+	}	
 	?>	
 </urlset>
