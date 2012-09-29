@@ -16,46 +16,54 @@ header( 'Content-Type: application/xml' );
 
 echo '<?xml version="1.0" encoding="utf-8"?>' . "\n";
 
+$ignore = array_merge( $ignore, array( '.', '..' ) );
+
 if ( isset( $xsl ) && !empty( $xsl ) )
-	echo '<?xml-stylesheet type="text/xsl" href="'. SITEMAP_DIR_URL . $xsl . '"?>' . "\n";
+	echo '<?xml-stylesheet type="text/xsl" href="' . SITEMAP_DIR_URL . $xsl . '"?>' . "\n";
 
-?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-	<?php
+function parse_dir( $dir, $url ) {
+	global $ignore, $filetypes, $replace, $chfreq, $prio;
 
-	// Open the dir that was asked for.
-	if ( $handle = opendir( SITEMAP_DIR ) ) {
-		while ( false !== ( $file = readdir( $handle ) ) ) {
-			// Check if this file needs to be ignored, if so, skip it.
-			if ( in_array( $file, $ignore ) )
-				continue;
+	$handle = opendir( $dir );
+	while ( false !== ( $file = readdir( $handle ) ) ) {
 
-			// Check whether the file has on of the extensions allowed for this XML sitemap
-			$fileinfo = pathinfo( SITEMAP_DIR . $file );
-			if ( in_array( $fileinfo['extension'], $filetypes ) ) {
+		// Check if this file needs to be ignored, if so, skip it.
+		if ( in_array( $file, $ignore ) )
+			continue;
 
-				// Create a W3C valid date for use in the XML sitemap based on the file modification time
-				$mod = date( 'c', filemtime( SITEMAP_DIR . $file ) );
+		if ( is_dir( $file ) ) {
+			if ( defined( 'RECURSIVE' ) && RECURSIVE )
+				parse_dir( $file, $url . $file . '/' );
+		}
 
-				// Replace the file with it's replacement from the settings, if needed.
-				if ( in_array( $file, $replace_files ) )
-					$file = $replace[$file];
+		// Check whether the file has on of the extensions allowed for this XML sitemap
+		$fileinfo = pathinfo( $dir . $file );
+		if ( in_array( $fileinfo['extension'], $filetypes ) ) {
 
-				// Start creating the output
-				?>
+			// Create a W3C valid date for use in the XML sitemap based on the file modification time
+			$mod = date( 'c', filemtime( $dir . $file ) );
 
-                <url>
-                    <loc><?php echo SITEMAP_DIR_URL . $file ?></loc>
-                    <lastmod><?php echo $mod; ?></lastmod>
-                    <changefreq><?php echo $chfreq; ?></changefreq>
-                    <priority><?php echo $prio; ?></priority>
-                </url>
-				<?php
-			}
-		} // End of the while loop
+			// Replace the file with it's replacement from the settings, if needed.
+			if ( in_array( $file, $replace ) )
+				$file = $replace[$file];
 
-		// Close the dir
-		closedir( $handle );
-	}
-
+			// Start creating the output
 	?>
+
+    <url>
+        <loc><?php echo $url . $file ?></loc>
+        <lastmod><?php echo $mod; ?></lastmod>
+        <changefreq><?php echo $chfreq; ?></changefreq>
+        <priority><?php echo $prio; ?></priority>
+    </url><?php
+		}
+	}
+	closedir( $handle );
+}
+
+?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><?php
+	parse_dir( SITEMAP_DIR, SITEMAP_DIR_URL );
+?>
+
 </urlset>

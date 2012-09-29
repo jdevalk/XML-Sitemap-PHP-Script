@@ -3,11 +3,17 @@
  * Change the configuration below and rename this file to config.php
  */
 
-// The directory to check, this script doesn't work recursively. Make sure the DIR ends ups in the Sitemap URL Dir below, otherwise the links to files will be broken!
+/*
+ * The directory to check.
+ * Make sure the DIR ends ups in the Sitemap Dir URL below, otherwise the links to files will be broken!
+ */
 define( 'SITEMAP_DIR', './' );
 
 // With trailing slash!
 define( 'SITEMAP_DIR_URL', 'http://www.example.com/' );
+
+// Whether or not the script should check recursively.
+define( 'RECURSIVE', true );
 
 // The file types, you can just add them on, so 'pdf', 'php' would work
 $filetypes = array( 'php', 'html', 'pdf' );

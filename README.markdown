@@ -4,8 +4,11 @@ This simple PHP script is meant to help you easily create XML Sitemaps for stati
 
 ## Configuration
 
-Open the PHP file and configure the settings until it says "STOP EDITING HERE". It's that simple.
+Open the config.php file and configure the settings. Then check the output and if it's ok, add the script URL to Google Webmaster Tools.
 
 ## Changelog
 
-2012-09-29: move configuration to config.php, fix outputted URLs
+* 2012-09-29:
+    * Move configuration to config.php.
+    * Fix URL output.
+    * Add option to work recursively.
