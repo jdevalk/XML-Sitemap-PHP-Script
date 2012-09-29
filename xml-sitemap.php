@@ -16,7 +16,7 @@ header( 'Content-Type: application/xml' );
 
 echo '<?xml version="1.0" encoding="utf-8"?>' . "\n";
 
-$ignore = array_merge( $ignore, array( '.', '..' ) );
+$ignore = array_merge( $ignore, array( '.', '..', 'config.php', 'xml-sitemap.php' ) );
 
 if ( isset( $xsl ) && !empty( $xsl ) )
 	echo '<?xml-stylesheet type="text/xsl" href="' . SITEMAP_DIR_URL . $xsl . '"?>' . "\n";
