@@ -1,6 +1,6 @@
 # XML Sitemap PHP Script 
 
-This simple PHP script is meant to help you easily create XML Sitemaps for static files. Read more about it [here](http://yoast.com/xml-sitemap-php-script/).
+This simple PHP script is meant to help you easily create XML Sitemaps for static files. Read more about the [XML Sitemap PHP script](http://yoast.com/xml-sitemap-php-script/).
 
 ## Configuration
 
