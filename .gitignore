@@ -1,3 +1,8 @@
 config.php
 .DS_Store
 .idea/
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
