@@ -28,7 +28,7 @@ function parse_dir( $dir, $url ) {
 	while ( false !== ( $file = readdir( $handle ) ) ) {
 
 		// Check if this file needs to be ignored, if so, skip it.
-		if ( in_array( $file, $ignore ) )
+		if ( in_array( utf8_encode( $file ), $ignore ) )
 			continue;
 
 		if ( is_dir( $file ) ) {
@@ -41,7 +41,11 @@ function parse_dir( $dir, $url ) {
 		if ( in_array( $fileinfo['extension'], $filetypes ) ) {
 
 			// Create a W3C valid date for use in the XML sitemap based on the file modification time
-			$mod = date( 'c', filemtime( $dir . $file ) );
+			if (filemtime( $dir .'/'. $file )==FALSE) {
+				$mod = date( 'c', filectime( $dir . $file ) );
+			} else {
+				$mod = date( 'c', filemtime( $dir . $file ) );
+			}
 
 			// Replace the file with it's replacement from the settings, if needed.
 			if ( in_array( $file, $replace ) )
@@ -51,7 +55,7 @@ function parse_dir( $dir, $url ) {
 	?>
 
     <url>
-        <loc><?php echo $url . $file ?></loc>
+        <loc><?php echo $url . rawurlencode( $file ); ?></loc>
         <lastmod><?php echo $mod; ?></lastmod>
         <changefreq><?php echo $chfreq; ?></changefreq>
         <priority><?php echo $prio; ?></priority>
