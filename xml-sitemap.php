@@ -4,12 +4,10 @@
  * XML Sitemap PHP Script
  * For more info, see: http://yoast.com/xml-sitemap-php-script/
  * Copyright (C), 2011 - 2012 - Joost de Valk, joost@yoast.com
+ * Minor fixes for running outside of docroot by Don - don@magentica.com
  */
 
 require './config.php';
-
-// Get the keys so we can check quickly
-$replace_files = array_keys( $replace );
 
 // Sent the correct header so browsers display properly, with or without XSL.
 header( 'Content-Type: application/xml' );
@@ -31,9 +29,9 @@ function parse_dir( $dir, $url ) {
 		if ( in_array( utf8_encode( $file ), $ignore ) )
 			continue;
 
-		if ( is_dir( $file ) ) {
+		if ( is_dir( $dir . $file ) ) {
 			if ( defined( 'RECURSIVE' ) && RECURSIVE )
-				parse_dir( $file, $url . $file . '/' );
+				parse_dir( $dir . $file . '/', $url . $file . '/' );
 		}
 
 		// Check whether the file has on of the extensions allowed for this XML sitemap
@@ -48,7 +46,7 @@ function parse_dir( $dir, $url ) {
 			}
 
 			// Replace the file with it's replacement from the settings, if needed.
-			if ( in_array( $file, $replace ) )
+			if ( isset($replace[$file] ) )
 				$file = $replace[$file];
 
 			// Start creating the output
