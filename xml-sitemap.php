@@ -27,13 +27,16 @@ function parse_dir( $dir, $url ) {
 	$handle = opendir( $dir );
 	while ( false !== ( $file = readdir( $handle ) ) ) {
 
+		// Check and add a trailing slash to $dir
+    		if ( substr( $dir, -1 ) !== '/' ) $dir .= '/';
+		
 		// Check if this file needs to be ignored, if so, skip it.
 		if ( in_array( utf8_encode( $file ), $ignore ) )
 			continue;
 
-		if ( is_dir( $file ) ) {
+		if ( is_dir( $dir . $file ) ) {
 			if ( defined( 'RECURSIVE' ) && RECURSIVE )
-				parse_dir( $file, $url . $file . '/' );
+				parse_dir( $dir . $file, $url . $file . '/' );
 		}
 
 		// Check whether the file has on of the extensions allowed for this XML sitemap
@@ -71,3 +74,5 @@ function parse_dir( $dir, $url ) {
 ?>
 
 </urlset>
+
+	closedir( $handle );
