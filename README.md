@@ -37,6 +37,7 @@ This script is licensed under the GPL v3.
 * 2022-12-06:
     * Changed the whole script to be a single class to avoid namespace clashes.
     * Switched from `config.php` to a `xml-sitemap-config.ini` file that can also be stored one directory above the script.
+    * Fixed a series of bugs with recursive directory listings etc.
 
 * 2013-09-22:
     * Some small bugfixes to the script.

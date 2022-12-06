@@ -90,42 +90,43 @@ class Joost_XML_Sitemap_PHP {
 				continue;
 			}
 
-			if ( is_dir( $dir . $file ) ) {
-				if ( $this->config['recursive'] ) {
-					$this->parse_dir( $dir . $file . '/', $url . $file . '/' );
-				}
+			if ( $this->config['recursive'] && is_dir( $dir . $file ) ) {
+				$this->parse_dir( $dir . $file . '/', $url . $file . '/' );
 			}
 
-			// Check whether the file has on of the extensions allowed for this XML sitemap
-			$file_info = pathinfo( $dir . $file );
-			if ( ! empty( $file_info['extension'] ) && in_array( $file_info['extension'], $filetypes ) ) {
-
-				// Create a W3C valid date for use in the XML sitemap based on the file modification time
-				if ( ! filemtime( $dir . '/' . $file ) ) {
-					$mod = date( 'c', filectime( $dir . $file ) );
-				} else {
-					$mod = date( 'c', filemtime( $dir . $file ) );
-				}
-
-				// Replace the file with its replacement from the settings, if needed.
-				if ( array_key_exists( $file, $this->config['replacements'] ) ) {
-					$file = $this->config['replacements'][ $file ];
-				}
-
-				// Start creating the output
-				$output = '<url>'  . PHP_EOL;
-				$output .= "\t" . '<loc>' . $url . rawurlencode( $file ) . '</loc>'  . PHP_EOL;
-				$output .= "\t" . '<lastmod>' . $mod . '</lastmod>'  . PHP_EOL;
-				if ( ! empty( $this->config['changefreq'] ) ) {
-					$output .= "\t" . '<changefreq>' . $this->config['changefreq'] . '</changefreq>'  . PHP_EOL;
-				}
-				if ( ! empty( $this->config['priority'] ) ) {
-					$output .= "\t" . '<priority>' . $this->config['priority'] . '</priority>'  . PHP_EOL;
-				}
-				$output .= '</url>' . PHP_EOL;
-
-				$this->output .= $output;
+			// Check whether the file has on of the extensions allowed for this XML sitemap.
+			$extension = pathinfo( $dir . $file, PATHINFO_EXTENSION );
+			if ( empty( $extension ) || ! in_array( $extension, $filetypes ) ) {
+				continue;
 			}
+
+			// Create a W3C valid date for use in the XML sitemap based on the file modification time.
+			$file_mod_time = filemtime( $dir . $file );
+			if ( $file_mod_time ) {
+				$file_mod_time = filectime( $dir . $file );
+			}
+
+			$mod = date( 'c', $file_mod_time );
+
+			// Replace the file with its replacement from the settings, if needed.
+			if ( isset( $this->config['replacements'][ $file ] ) ) {
+				$file = $this->config['replacements'][ $file ];
+			}
+
+			// Start creating the output
+			$output = '<url>'  . PHP_EOL;
+			$output .= "\t" . '<loc>' . $url . rawurlencode( $file ) . '</loc>'  . PHP_EOL;
+			$output .= "\t" . '<lastmod>' . $mod . '</lastmod>'  . PHP_EOL;
+			if ( ! empty( $this->config['changefreq'] ) ) {
+				$output .= "\t" . '<changefreq>' . $this->config['changefreq'] . '</changefreq>'  . PHP_EOL;
+			}
+			if ( ! empty( $this->config['priority'] ) ) {
+				$output .= "\t" . '<priority>' . $this->config['priority'] . '</priority>'  . PHP_EOL;
+			}
+			$output .= '</url>' . PHP_EOL;
+
+			$this->output .= $output;
+
 		}
 		closedir( $handle );
 	}
