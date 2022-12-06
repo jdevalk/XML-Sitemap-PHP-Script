@@ -102,7 +102,7 @@ class Joost_XML_Sitemap_PHP {
 
 			// Create a W3C valid date for use in the XML sitemap based on the file modification time.
 			$file_mod_time = filemtime( $dir . $file );
-			if ( $file_mod_time ) {
+			if ( ! $file_mod_time ) {
 				$file_mod_time = filectime( $dir . $file );
 			}
 
