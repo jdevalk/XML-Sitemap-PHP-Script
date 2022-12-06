@@ -1,7 +1,7 @@
 <?php
 /**
  * XML Sitemap PHP Script
- * For more info, see: https://joost.blog/xml-sitemap-php-script/
+ * For more info, see: https://github.com/jdevalk/XML-Sitemap-PHP-Script
  * Copyright (C), 2011 - 2022 - Joost de Valk, joost@joost.blog
  */
 
