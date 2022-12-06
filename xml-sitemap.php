@@ -6,10 +6,7 @@
  */
 
 class Joost_XML_Sitemap_PHP {
-	/**
-	 * Holds our configuration.
-	 */
-	private array $config = [];
+	const CONFIG_FILE = 'xml-sitemap-config.ini';
 
 	/**
 	 * Holds the output.
@@ -17,9 +14,56 @@ class Joost_XML_Sitemap_PHP {
 	private string $output = '';
 
 	/**
-	 * Class constructor.
+	 * Holds the path.
 	 */
-	public function __construct() {
+	private string $path;
+
+	/**
+	 * Holds the base URL.
+	 */
+	private string $url;
+
+	/**
+	 * Array of filetypes we're adding to the XML sitemap.
+	 */
+	private array $filetypes;
+
+	/**
+	 * Relative path to the XSL file.
+	 */
+	private string $xsl = 'xml-sitemap.xsl';
+
+	/**
+	 * Files we ignore in our output.
+	 */
+	private array $ignore = [];
+
+	/**
+	 * The change frequency of the files.
+	 */
+	private string $changefreq = '';
+
+	/**
+	 * The priority of the file, between 0.1 and 1.
+	 */
+	private float $priority = 0;
+
+	/**
+	 * Determines if we recurse directories or not.
+	 */
+	private bool $recursive = true;
+
+	/**
+	 * URLs we replace with something else.
+	 */
+	private array $replacements;
+
+	/**
+	 * Generates our XML sitemap.
+	 *
+	 * @return void
+	 */
+	public function generate(): void {
 		$this->read_ini();
 		$this->read_dir();
 		$this->output();
@@ -30,17 +74,25 @@ class Joost_XML_Sitemap_PHP {
 	 *
 	 * @return void
 	 */
-	private function read_ini() {
-		if ( file_exists( './xml-sitemap-config.ini' ) ) {
-			$this->config = parse_ini_file( './xml-sitemap-config.ini' );
-		}
-		else if ( file_exists( '../xml-sitemap-config.ini' ) ) {
-			$this->config = parse_ini_file( '../xml-sitemap-config.ini' );
-		}
-		else {
-			echo "Error: unable to load config.php, please copy config-sample.php to config.php and adjust." . PHP_EOL;
+	private function read_ini(): void {
+		if ( file_exists( './' . self::CONFIG_FILE ) ) {
+			$config = parse_ini_file( './' . self::CONFIG_FILE );
+		} elseif ( file_exists( '../' . self::CONFIG_FILE ) ) {
+			$config = parse_ini_file( '../' . self::CONFIG_FILE );
+		} else {
+			printf( 'Error: unable to load %1$s, please copy xml-sitemap-config-sample.ini to %1$s and adjust.' . PHP_EOL, self::CONFIG_FILE );
 			die( 1 );
 		}
+
+		$this->changefreq   = (string) $config['changefreq'];
+		$this->path         = (string) $config['directory'];
+		$this->url          = (string) $config['directory_url'];
+		$this->filetypes    = (array) $config['filetypes'];
+		$this->ignore       = array_merge( $config['ignore'], [ '.', '..', 'xml-sitemap.php' ] );
+		$this->priority     = (float) $config['priority'];
+		$this->recursive    = (bool) $config['recursive'];
+		$this->replacements = (array) $config['replacements'];
+		$this->xsl          = (string) $config['xsl'];
 	}
 
 	/**
@@ -48,26 +100,8 @@ class Joost_XML_Sitemap_PHP {
 	 *
 	 * @return void
 	 */
-	private function read_dir() {
-		$this->parse_dir( $this->config['directory'], $this->config['directory_url'] );
-	}
-
-	/**
-	 * Output our XML sitemap.
-	 *
-	 * @return void
-	 */
-	private function output() {
-		// Sent the correct header so browsers display properly, with or without XSL.
-		header( 'Content-Type: application/xml' );
-
-		echo '<?xml version="1.0" encoding="utf-8"?>' . PHP_EOL;
-		if ( isset( $this->config['xsl'] ) && ! empty( $this->config['xsl'] ) ) {
-			echo '<?xml-stylesheet type="text/xsl" href="' . $this->config['directory_url'] . $this->config['xsl'] . '"?>' . PHP_EOL;
-		}
-		echo '<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
-		echo $this->output;
-		echo '</urlset>' . PHP_EOL;
+	private function read_dir(): void {
+		$this->parse_dir( $this->path, $this->url );
 	}
 
 	/**
@@ -78,25 +112,22 @@ class Joost_XML_Sitemap_PHP {
 	 *
 	 * @return void
 	 */
-	private function parse_dir( string $dir, string $url ) {
-		$ignore        = array_merge( $this->config['ignore'], array( '.', '..', 'xml-sitemap.php' ) );
-		$filetypes     = $this->config['filetypes'];
-
+	private function parse_dir( string $dir, string $url ): void {
 		$handle = opendir( $dir );
 
 		while ( false !== ( $file = readdir( $handle ) ) ) {
 			// Check if this file needs to be ignored, if so, skip it.
-			if ( in_array( utf8_encode( $file ), $ignore ) ) {
+			if ( in_array( utf8_encode( $file ), $this->ignore ) ) {
 				continue;
 			}
 
-			if ( $this->config['recursive'] && is_dir( $dir . $file ) ) {
+			if ( $this->recursive && is_dir( $dir . $file ) ) {
 				$this->parse_dir( $dir . $file . '/', $url . $file . '/' );
 			}
 
 			// Check whether the file has on of the extensions allowed for this XML sitemap.
 			$extension = pathinfo( $dir . $file, PATHINFO_EXTENSION );
-			if ( empty( $extension ) || ! in_array( $extension, $filetypes ) ) {
+			if ( empty( $extension ) || ! in_array( $extension, $this->filetypes ) ) {
 				continue;
 			}
 
@@ -109,19 +140,19 @@ class Joost_XML_Sitemap_PHP {
 			$mod = date( 'c', $file_mod_time );
 
 			// Replace the file with its replacement from the settings, if needed.
-			if ( isset( $this->config['replacements'][ $file ] ) ) {
-				$file = $this->config['replacements'][ $file ];
+			if ( isset( $this->replacements[ $file ] ) ) {
+				$file = $this->replacements[ $file ];
 			}
 
 			// Start creating the output
-			$output = '<url>'  . PHP_EOL;
-			$output .= "\t" . '<loc>' . $url . rawurlencode( $file ) . '</loc>'  . PHP_EOL;
-			$output .= "\t" . '<lastmod>' . $mod . '</lastmod>'  . PHP_EOL;
-			if ( ! empty( $this->config['changefreq'] ) ) {
-				$output .= "\t" . '<changefreq>' . $this->config['changefreq'] . '</changefreq>'  . PHP_EOL;
+			$output = '<url>' . PHP_EOL;
+			$output .= "\t" . '<loc>' . $url . rawurlencode( $file ) . '</loc>' . PHP_EOL;
+			$output .= "\t" . '<lastmod>' . $mod . '</lastmod>' . PHP_EOL;
+			if ( ! empty( $this->changefreq ) ) {
+				$output .= "\t" . '<changefreq>' . $this->changefreq . '</changefreq>' . PHP_EOL;
 			}
-			if ( ! empty( $this->config['priority'] ) ) {
-				$output .= "\t" . '<priority>' . $this->config['priority'] . '</priority>'  . PHP_EOL;
+			if ( $this->priority !== 0 && $this->priority <= 1 ) {
+				$output .= "\t" . '<priority>' . $this->priority . '</priority>' . PHP_EOL;
 			}
 			$output .= '</url>' . PHP_EOL;
 
@@ -130,6 +161,25 @@ class Joost_XML_Sitemap_PHP {
 		}
 		closedir( $handle );
 	}
+
+	/**
+	 * Output our XML sitemap.
+	 *
+	 * @return void
+	 */
+	private function output(): void {
+		// Sent the correct header so browsers display properly, with or without XSL.
+		header( 'Content-Type: application/xml' );
+
+		echo '<?xml version="1.0" encoding="utf-8"?>' . PHP_EOL;
+		if ( ! empty( $this->xsl ) ) {
+			echo '<?xml-stylesheet type="text/xsl" href="' . $this->url . $this->xsl . '"?>' . PHP_EOL;
+		}
+		echo '<urlset xmlns="https://www.sitemaps.org/schemas/sitemap/0.9">' . PHP_EOL;
+		echo $this->output;
+		echo '</urlset>' . PHP_EOL;
+	}
 }
 
-new Joost_XML_Sitemap_PHP();
+$joost_xml = new Joost_XML_Sitemap_PHP();
+$joost_xml->generate();
