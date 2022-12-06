@@ -1,3 +1,5 @@
+![Easily generate XML sitemaps for your static files](https://repository-images.githubusercontent.com/2071222/109018c6-f441-4641-a4dc-c8e9f7e894ec)
+
 # XML Sitemap PHP Script
 
 This simple PHP script is meant to help you easily create XML Sitemaps for static files, for instance PDFs.
