@@ -151,7 +151,7 @@ class Joost_XML_Sitemap_PHP {
 			if ( ! empty( $this->changefreq ) ) {
 				$output .= "\t" . '<changefreq>' . $this->changefreq . '</changefreq>' . PHP_EOL;
 			}
-			if ( $this->priority !== 0 && $this->priority <= 1 ) {
+			if ( $this->priority != 0 && $this->priority <= 1 ) {
 				$output .= "\t" . '<priority>' . $this->priority . '</priority>' . PHP_EOL;
 			}
 			$output .= '</url>' . PHP_EOL;
